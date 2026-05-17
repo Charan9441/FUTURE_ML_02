@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Support Ticket Classifier</title>
+    <!-- Modern Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            --primary-color: #6366f1;
+            --primary-hover: #4f46e5;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Abstract Background Elements for aesthetic */
+        .blob {
+            position: absolute;
+            filter: blur(80px);
+            z-index: 0;
+            opacity: 0.6;
+        }
+        .blob-1 {
+            top: -100px;
+            left: -100px;
+            width: 400px;
+            height: 400px;
+            background: #4338ca;
+            border-radius: 50%;
+        }
+        .blob-2 {
+            bottom: -150px;
+            right: -50px;
+            width: 500px;
+            height: 500px;
+            background: #818cf8;
+            border-radius: 50%;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 650px;
+            padding: 20px;
+        }
+
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: var(--glass-shadow);
+            transform: translateY(0);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .glass-panel:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px 0 rgba(0, 0, 0, 0.4);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2.2rem;
+            font-weight: 700;
+            background: linear-gradient(to right, #a5b4fc, #c4b5fd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            margin: 10px 0 0;
+            color: var(--text-muted);
+            font-size: 1rem;
+            font-weight: 300;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 16px;
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            resize: none;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+
+        textarea::placeholder {
+            color: rgba(148, 163, 184, 0.5);
+        }
+
+        button {
+            width: 100%;
+            padding: 16px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            font-family: 'Outfit', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        button:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.6);
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        /* Result Section */
+        .result-container {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            text-align: center;
+            display: none;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .result-container.show {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .result-label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 8px;
+        }
+
+        .result-category {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #10b981;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .btn-text.hide {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+
+    <div class="container">
+        <div class="glass-panel">
+            <div class="header">
+                <h1><i class="fa-solid fa-microchip"></i> AI Ticket Classifier</h1>
+                <p>Enter a customer support query below to predict its category.</p>
+            </div>
+
+            <div class="input-group">
+                <textarea id="ticketInput" placeholder="e.g., I was charged twice for my subscription this month. Please refund the extra charge..."></textarea>
+            </div>
+
+            <button id="classifyBtn" onclick="classifyTicket()">
+                <span class="btn-text">Classify Ticket</span>
+                <div class="spinner" id="spinner"></div>
+            </button>
+
+            <div class="result-container" id="resultContainer">
+                <div class="result-label">Predicted Category</div>
+                <h2 class="result-category">
+                    <i class="fa-solid fa-layer-group"></i> 
+                    <span id="categoryText">Unknown</span>
+                </h2>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function classifyTicket() {
+            const input = document.getElementById('ticketInput').value;
+            if (!input.trim()) return;
+
+            const btn = document.getElementById('classifyBtn');
+            const btnText = document.querySelector('.btn-text');
+            const spinner = document.getElementById('spinner');
+            const resultContainer = document.getElementById('resultContainer');
+            const categoryText = document.getElementById('categoryText');
+
+            // UI Loading state
+            btn.style.pointerEvents = 'none';
+            btnText.classList.add('hide');
+            spinner.style.display = 'block';
+            resultContainer.classList.remove('show');
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ ticket_text: input })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    categoryText.textContent = data.predicted_category;
+                    
+                    // Show result with animation delay
+                    setTimeout(() => {
+                        resultContainer.classList.add('show');
+                    }, 200);
+                } else {
+                    categoryText.textContent = data.error || 'Error occurred';
+                    resultContainer.classList.add('show');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                categoryText.textContent = 'Connection Error';
+                resultContainer.classList.add('show');
+            } finally {
+                // Restore UI state
+                btn.style.pointerEvents = 'auto';
+                btnText.classList.remove('hide');
+                spinner.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
